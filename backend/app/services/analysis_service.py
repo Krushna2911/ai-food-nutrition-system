@@ -31,3 +31,11 @@ class AnalysisService:
             db=db,
             image_id=image_id,
         )
+
+    def get_all_analyses(
+        self,
+        db: Session,
+    ) -> list[Analysis]:
+        return self.repository.get_all(
+            db=db,
+        )

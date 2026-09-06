@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 function App() {
  const [selectedImage, setSelectedImage] = useState(null)
  const [analysisResult, setAnalysisResult] = useState(null)
  const [nutritionResult, setNutritionResult] = useState(null)
+ const [analysisHistory, setAnalysisHistory] = useState([])
+ const [selectedHistory, setSelectedHistory] = useState(null)
+ useEffect(() => {
+  fetch('http://localhost:8001/analysis')
+    .then((response) => response.json())
+    .then((data) => {
+      setAnalysisHistory(data)
+      console.log('analysisHistory', data)
+    })
+}, [])
   return (
     <main className="app">
       <header className="navbar">
@@ -138,6 +148,51 @@ function App() {
             }}
           />
         </div>
+      </section>
+            <section id="history" className="history-section">
+        <div className="section-heading">
+          <p className="eyebrow">ANALYSIS HISTORY</p>
+          <h2>Previous analyses</h2>
+          <p>Your recent food analysis records.</p>
+        </div>
+
+        <div className="history-list">
+          {analysisHistory.map((analysis) => (
+            <div
+              className="history-card"
+              key={analysis.id}
+              onClick={async () => {
+                const response = await fetch(
+                  `http://localhost:8001/analysis/${analysis.image_id}`
+                )
+
+                const data = await response.json()
+                setSelectedHistory(data)
+                console.log('historyDetail', data)
+              }}
+            >
+              <span>🍽️</span>
+              <div>
+                <h3>Analysis #{analysis.id}</h3>
+                <p>{analysis.image_id}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+                {selectedHistory && (
+          <div className="analysis-result">
+            <p className="eyebrow">SELECTED ANALYSIS</p>
+
+            <h3>
+              {selectedHistory.detections[0].class_name}
+            </h3>
+
+            <p>
+              Confidence:{' '}
+              {(selectedHistory.detections[0].confidence * 100).toFixed(1)}%
+            </p>
+          </div>
+        )}
       </section>
 
       <section id="diet" className="features-section">

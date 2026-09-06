@@ -29,3 +29,13 @@ class AnalysisRepository:
             .filter(Analysis.image_id == image_id)
             .first()
         )
+
+    def get_all(
+        self,
+        db: Session,
+    ) -> list[Analysis]:
+        return (
+            db.query(Analysis)
+            .order_by(Analysis.id.desc())
+            .all()
+        )

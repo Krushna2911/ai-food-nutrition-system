@@ -23,7 +23,19 @@ food_service = FoodService(
     FoodRepository()
 )
 
+@router.get("")
+def get_analysis_history(
+    db: Session = Depends(get_db),
+):
+    analyses = analysis_service.get_all_analyses(db=db)
 
+    return [
+        {
+            "id": analysis.id,
+            "image_id": analysis.image_id,
+        }
+        for analysis in analyses
+    ]
 @router.get("/{image_id}", response_model=AnalysisResponse)
 def get_analysis(
     image_id: str,
