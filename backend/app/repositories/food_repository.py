@@ -19,6 +19,12 @@ class FoodRepository:
             confidence=confidence,
         )
 
+        db.add(detection)
+        db.flush()
+        db.refresh(detection)
+
+        return detection
+
     def get_by_analysis_id(
         self,
         db: Session,
@@ -30,8 +36,4 @@ class FoodRepository:
             .all()
         )
 
-        db.add(detection)
-        db.flush()
-        db.refresh(detection)
-
-        return detection
+    

@@ -41,3 +41,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+from app.models.analysis import Analysis
+from app.models.food import Food
+from app.models.nutrition import Nutrition
