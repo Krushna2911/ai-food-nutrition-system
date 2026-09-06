@@ -1,0 +1,30 @@
+# UEC-Food100 YOLO26 Detection Dataset
+
+path: data/processed/uecfood100_yolo
+
+train: images/train
+val: images/val
+test: images/test
+
+nc: 100
+
+names:
+  0: rice
+  1: eels on rice
+  2: pilaf
+  3: chicken-'n'-egg on rice
+  4: pork cutlet on rice
+  5: beef curry
+  6: sushi
+  7: chicken rice
+  8: fried rice
+  9: tempura bowl
+  10: bibimbap
+  11: toast
+  12: croissant
+  13: roll bread
+  14: raisin bread
+  15: chip butty
+  16: hamburger
+  17: pizza
+  18: sandwiches
