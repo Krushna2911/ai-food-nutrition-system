@@ -5,6 +5,7 @@ from app.routers.food import router as food_router
 from app.routers.analysis import router as analysis_router
 
 from app.routers.user_profile import router as user_profile_router
+from app.routers.nutrition_requirement import router as nutrition_requirement_router
 
 
 app = FastAPI(
@@ -42,3 +43,4 @@ def health_check():
 
 app.include_router(nutrition_router)
 app.include_router(analysis_router)
+app.include_router(nutrition_requirement_router)

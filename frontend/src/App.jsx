@@ -20,6 +20,8 @@ function App() {
     food_restrictions: '',
   })
 
+  const [nutritionRequirements, setNutritionRequirements] = useState(null)
+
   // Load a saved profile from the backend
 
 
@@ -59,7 +61,9 @@ function App() {
 
       setProfileSaved(true)
       console.log('profile loaded', data)
+      
     })
+
     .catch((error) => {
       console.error('Profile load error:', error)
     })
@@ -121,6 +125,40 @@ if (Number(profile.weight_kg) < 20 || Number(profile.weight_kg) > 300) {
       localStorage.setItem('profileId', data.id)
       setProfileSaved(true)
       console.log('SAVED PROFILE ID:', data.id)
+
+      const requirementResponse = await fetch(
+  'http://localhost:8001/nutrition-requirements',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      age: Number(profile.age),
+      height_cm: Number(profile.height_cm),
+      weight_kg: Number(profile.weight_kg),
+      activity_level: profile.activity_level,
+      diet_goal: profile.diet_goal,
+    }),
+  }
+)
+
+const requirementData = await requirementResponse.json()
+
+if (!requirementResponse.ok) {
+  console.error(
+    'Nutrition requirement calculation failed:',
+    requirementData
+  )
+  return
+}
+
+setNutritionRequirements(requirementData)
+
+console.log(
+  'NUTRITION REQUIREMENTS:',
+  requirementData
+)
 
     } catch (error) {
       console.error('Profile save error:', error)
@@ -310,6 +348,20 @@ if (Number(profile.weight_kg) < 20 || Number(profile.weight_kg) > 300) {
               Profile saved successfully.
             </p>
           )}
+
+          {nutritionRequirements && (
+              <div className="nutrition-requirements">
+                <p>
+                  Daily calorie target:{' '}
+                  <strong>{nutritionRequirements.daily_calories} kcal</strong>
+                </p>
+
+                <p>
+                  Estimated BMR:{' '}
+                  <strong>{nutritionRequirements.bmr} kcal</strong>
+                </p>
+              </div>
+            )}
 
         </div>
       </section>
