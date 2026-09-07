@@ -4,6 +4,8 @@ from app.routers.nutrition import router as nutrition_router
 from app.routers.food import router as food_router
 from app.routers.analysis import router as analysis_router
 
+from app.routers.user_profile import router as user_profile_router
+
 
 app = FastAPI(
     title="AI Food Nutrition System API",
@@ -21,6 +23,7 @@ app.add_middleware(
 
 
 app.include_router(food_router)
+app.include_router(user_profile_router)
 
 
 @app.get("/")

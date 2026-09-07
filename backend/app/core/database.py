@@ -5,6 +5,8 @@ from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
+
+
 load_dotenv()
 
 
@@ -46,3 +48,7 @@ def get_db():
 from app.models.analysis import Analysis
 from app.models.food import Food
 from app.models.nutrition import Nutrition
+from app.models.analysis import Analysis
+from app.models.food import Food
+from app.models.nutrition import Nutrition
+from app.models.user_profile import UserProfile
