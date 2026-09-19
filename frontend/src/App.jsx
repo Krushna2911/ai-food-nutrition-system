@@ -10,6 +10,8 @@ function App() {
 
   const [profileSaved, setProfileSaved] = useState(false)
 
+  const [portionSize, setPortionSize] = useState('')
+
   const [profile, setProfile] = useState({
     age: '',
     height_cm: '',
@@ -381,7 +383,7 @@ console.log(
 
         <div className="upload-card">
 
-          {analysisResult && nutritionResult && (
+          {analysisResult && analysisResult.detections.length > 0 && (
             <div className="analysis-result">
               <p className="eyebrow">ANALYSIS RESULT</p>
 
@@ -397,7 +399,24 @@ console.log(
                 %
               </p>
 
-              <div className="nutrition-info">
+              {analysisResult && analysisResult.detections.length > 0 && (
+                <div className="portion-input">
+                  <label htmlFor="portion-size">Portion size (g)</label>
+                  <input
+                    id="portion-size"
+                    type="number"
+                    min="1"
+                    placeholder="Enter portion size"
+                    value={portionSize}
+                    onChange={(event) => setPortionSize(event.target.value)}
+                  />
+                </div>
+              )}
+
+           {nutritionResult && (
+                <div className="nutrition-info">
+                <p>Portion: {nutritionResult.portion_g} g</p>
+
                 <p>
                   Calories: {nutritionResult.calories} kcal
                 </p>
@@ -415,7 +434,8 @@ console.log(
                   Fat: {nutritionResult.fat_g} g
                 </p>
               </div>
-            </div>
+              )}
+          </div>
           )}
 
           {selectedImage ? (
@@ -471,13 +491,31 @@ console.log(
                 setAnalysisResult(data)
 
                 const nutritionResponse = await fetch(
-                  `http://localhost:8001/nutrition/${data.detections[0].class_name}`
-                )
+                    'http://localhost:8001/nutrition/calculate',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        food_name: data.detections[0].class_name,
+                        portion_g: Number(portionSize),
+                      }),
+                    }
+)
 
                 const nutritionData =
                   await nutritionResponse.json()
 
-                setNutritionResult(nutritionData)
+                if (nutritionResponse.ok) {
+                  setNutritionResult(nutritionData)
+                } else {
+                  setNutritionResult(null)
+                  console.warn(
+                    'Nutrition data unavailable:',
+                    nutritionData.detail
+                  )
+                }
 
                 console.log('analysis result', data)
                 console.log(

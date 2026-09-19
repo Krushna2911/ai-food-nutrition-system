@@ -15,6 +15,7 @@ from app.services.analysis_service import AnalysisService
 
 
 detection_service = FoodDetectionService()
+detection_service.load_model()
 
 food_repository = FoodRepository()
 food_service = FoodService(food_repository)
@@ -26,7 +27,7 @@ router = APIRouter(
     tags=["Food"]
 )
 
-detection_service = FoodDetectionService()
+
 
 
 @router.get("/test")
@@ -75,25 +76,32 @@ async def detect_food(
         image_id=saved_image["image_id"],
     )
 
-    test_detection = food_service.save_detection(
-    db=db,
-    analysis_id=analysis.id,
-    class_id=0,
-    class_name="rice",
-    confidence=0.95,
-)
+    detections = detection_service.predict(saved_image["path"])
+
+    saved_detections = []
+
+    for detection in detections:
+        saved_detection = food_service.save_detection(
+            db=db,
+            analysis_id=analysis.id,
+            class_id=detection["class_id"],
+            class_name=detection["class_name"],
+            confidence=detection["confidence"],
+        )
+
+        saved_detections.append(
+            {
+                "class_id": saved_detection.class_id,
+                "class_name": saved_detection.class_name,
+                "confidence": saved_detection.confidence,
+                "x1": detection["x1"],
+                "y1": detection["y1"],
+                "x2": detection["x2"],
+                "y2": detection["y2"],
+            }
+        )
 
     return {
         "image_id": saved_image["image_id"],
-        "detections": [
-            {
-                "class_id": test_detection.class_id,
-                "class_name": test_detection.class_name,
-                "confidence": test_detection.confidence,
-                "x1": 0.10,
-                "y1": 0.10,
-                "x2": 0.90,
-                "y2": 0.90,
-            }
-        ],
+        "detections": saved_detections,
     }
