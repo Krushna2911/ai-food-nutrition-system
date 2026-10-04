@@ -1,19 +1,19 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.services.ml_service import FoodDetectionService
-from app.services.image_service import save_uploaded_image
-
-from app.models.food import FoodDetectionResponse
-from fastapi import Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.services.food_service import FoodService
+from app.models.food import FoodDetectionResponse
+
 from app.repositories.food_repository import FoodRepository
-
 from app.repositories.analysis_repository import AnalysisRepository
-from app.services.analysis_service import AnalysisService
 
+from app.services.ml_service import FoodDetectionService
+from app.services.image_service import save_uploaded_image
+from app.services.food_service import FoodService
+from app.services.analysis_service import AnalysisService
 from app.services.segmentation_service import FoodSegmentationService
+from app.services.mass_feature_service import MassFeatureService
+from app.services.mass_estimation_service import MassEstimationService
 
 
 detection_service = FoodDetectionService()
@@ -22,8 +22,14 @@ detection_service.load_model()
 segmentation_service = FoodSegmentationService()
 segmentation_service.load_model()
 
+mass_feature_service = MassFeatureService()
+
+mass_estimation_service = MassEstimationService()
+mass_estimation_service.load_model()
+
 food_repository = FoodRepository()
 food_service = FoodService(food_repository)
+
 analysis_repository = AnalysisRepository()
 analysis_service = AnalysisService(analysis_repository)
 
@@ -144,3 +150,34 @@ async def segment_food(
         "image_id": saved_image["image_id"],
         "segmentations": segmentations,
     }
+
+@router.post("/mass-estimate")
+async def estimate_food_mass(
+    rgb_file: UploadFile = File(...),
+    depth_file: UploadFile = File(...),
+):
+    try:
+        rgb_image = await save_uploaded_image(rgb_file)
+        depth_image = await save_uploaded_image(depth_file)
+
+        features = mass_feature_service.extract_features(
+            rgb_path=rgb_image["path"],
+            depth_path=depth_image["path"],
+        )
+
+        estimated_mass = mass_estimation_service.predict(
+            features
+        )
+
+        return {
+            "rgb_image_id": rgb_image["image_id"],
+            "depth_image_id": depth_image["image_id"],
+            "estimated_mass_g": estimated_mass,
+            
+        }
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
