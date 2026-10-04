@@ -1,9 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 function App() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [analysisResult, setAnalysisResult] = useState(null)
+  const [segmentationResult, setSegmentationResult] = useState(null)
+  const imageRef = useRef(null)
+      const [imageDimensions, setImageDimensions] = useState({
+        width: 0,
+        height: 0,
+      })
   const [nutritionResult, setNutritionResult] = useState(null)
   const [analysisHistory, setAnalysisHistory] = useState([])
   const [selectedHistory, setSelectedHistory] = useState(null)
@@ -383,6 +389,37 @@ console.log(
 
         <div className="upload-card">
 
+      <div className="portion-input">
+          <label htmlFor="portion-size">Portion size (g)</label>
+          <input
+            id="portion-size"
+            type="number"
+            min="1"
+            placeholder="Enter portion size"
+            value={portionSize}
+            onChange={(event) => setPortionSize(event.target.value)}
+          />
+          </div>
+
+          {segmentationResult &&
+            segmentationResult.segmentations.length > 0 && (
+              <div className="analysis-result">
+                <p className="eyebrow">SEGMENTATION RESULT</p>
+
+                {segmentationResult.segmentations.map((segment, index) => (
+                  <div key={index}>
+                    <h3>{segment.class_name}</h3>
+
+                    <p>
+                      Confidence:{' '}
+                      {(segment.confidence * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+
           {analysisResult && analysisResult.detections.length > 0 && (
             <div className="analysis-result">
               <p className="eyebrow">ANALYSIS RESULT</p>
@@ -399,19 +436,7 @@ console.log(
                 %
               </p>
 
-              {analysisResult && analysisResult.detections.length > 0 && (
-                <div className="portion-input">
-                  <label htmlFor="portion-size">Portion size (g)</label>
-                  <input
-                    id="portion-size"
-                    type="number"
-                    min="1"
-                    placeholder="Enter portion size"
-                    value={portionSize}
-                    onChange={(event) => setPortionSize(event.target.value)}
-                  />
-                </div>
-              )}
+
 
            {nutritionResult && (
                 <div className="nutrition-info">
@@ -437,16 +462,75 @@ console.log(
               )}
           </div>
           )}
+        {selectedImage ? (
+              <div
+                style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                }}
+              >
+                <img
+                  ref={imageRef}
+                  src={selectedImage}
+                  alt="Selected food"
+                  className="image-preview"
+                  onLoad={(event) => {
+                    setImageDimensions({
+                      width: event.target.naturalWidth,
+                      height: event.target.naturalHeight,
+                    })
+                  }}
+                />
 
-          {selectedImage ? (
-            <img
-              src={selectedImage}
-              alt="Selected food"
-              className="image-preview"
-            />
-          ) : (
-            <div className="upload-icon">📷</div>
-          )}
+                {segmentationResult &&
+                  imageDimensions.width > 0 &&
+                  imageDimensions.height > 0 && (
+                    <svg
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                  }}
+                  viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}
+                  preserveAspectRatio="none"
+                >
+                  {segmentationResult.segmentations.map((segment, index) => {
+                    const firstPoint = segment.polygon?.[0]
+
+                    return (
+                      <g key={index}>
+                        <polygon
+                          points={segment.polygon
+                            .map(([x, y]) => `${x},${y}`)
+                            .join(' ')}
+                          fill="rgba(255, 165, 0, 0.25)"
+                          stroke="orange"
+                          strokeWidth="3"
+                        />
+
+                        {firstPoint && (
+                          <text
+                            x={firstPoint[0]}
+                            y={firstPoint[1] - 5}
+                            fill="orange"
+                            fontSize="24"
+                            fontWeight="bold"
+                          >
+                            {segment.class_name}
+                          </text>
+                        )}
+                      </g>
+                    )
+                  })}
+                </svg>
+                  )}
+              </div>
+            ) : (
+              <div className="upload-icon">📷</div>
+            )}
 
           <h3>Upload a food image</h3>
 
@@ -466,6 +550,7 @@ console.log(
               type="button"
               className="primary-button analysis-button"
               onClick={async () => {
+                console.log('ANALYZE BUTTON CLICKED')
                 const input =
                   document.getElementById('food-image')
 
@@ -474,6 +559,11 @@ console.log(
                 if (!file) {
                   return
                 }
+
+                if (!portionSize || Number(portionSize) <= 0) {
+                    alert('Please enter a valid portion size greater than 0 g.')
+                    return
+                  }
 
                 const formData = new FormData()
                 formData.append('file', file)
@@ -487,10 +577,38 @@ console.log(
                 )
 
                 const data = await response.json()
-
+                console.log('Detection result:', data)
                 setAnalysisResult(data)
 
+                const segmentationFormData = new FormData()
+                  segmentationFormData.append('file', file)
+
+                  const segmentationResponse = await fetch(
+                    'http://localhost:8001/food/segment',
+                    {
+                      method: 'POST',
+                      body: segmentationFormData,
+                    }
+                  )
+
+                  const segmentationData = await segmentationResponse.json()
+
+                  if (segmentationResponse.ok) {
+                    setSegmentationResult(segmentationData)
+                    console.log(
+                      'Segmentation result:',
+                      JSON.stringify(segmentationData, null, 2)
+                    )
+                  } else {
+                    setSegmentationResult(null)
+                    console.warn(
+                      'Segmentation failed:',
+                      segmentationData.detail
+                    )
+                  }
+
                 const nutritionResponse = await fetch(
+                
                     'http://localhost:8001/nutrition/calculate',
                     {
                       method: 'POST',

@@ -13,9 +13,14 @@ from app.repositories.food_repository import FoodRepository
 from app.repositories.analysis_repository import AnalysisRepository
 from app.services.analysis_service import AnalysisService
 
+from app.services.segmentation_service import FoodSegmentationService
+
 
 detection_service = FoodDetectionService()
 detection_service.load_model()
+
+segmentation_service = FoodSegmentationService()
+segmentation_service.load_model()
 
 food_repository = FoodRepository()
 food_service = FoodService(food_repository)
@@ -104,4 +109,38 @@ async def detect_food(
     return {
         "image_id": saved_image["image_id"],
         "detections": saved_detections,
+    }
+
+@router.post("/segment")
+async def segment_food(
+    file: UploadFile = File(...),
+):
+    allowed_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/jpg",
+    }
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Please upload a JPEG, PNG, or WEBP image.",
+        )
+
+    try:
+        saved_image = await save_uploaded_image(file)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=413,
+            detail=str(exc),
+        ) from exc
+
+    segmentations = segmentation_service.predict(
+        saved_image["path"]
+    )
+
+    return {
+        "image_id": saved_image["image_id"],
+        "segmentations": segmentations,
     }
