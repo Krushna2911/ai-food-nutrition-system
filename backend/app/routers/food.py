@@ -157,6 +157,25 @@ async def estimate_food_mass(
     depth_file: UploadFile = File(...),
 ):
     try:
+        allowed_types = {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/jpg",
+        }
+
+        if rgb_file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid RGB file type. Please upload a JPEG, PNG, or WEBP image.",
+            )
+
+        if depth_file.content_type != "image/png":
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid depth file type. Please upload a PNG depth image.",
+            )
+
         rgb_image = await save_uploaded_image(rgb_file)
         depth_image = await save_uploaded_image(depth_file)
 
@@ -173,7 +192,6 @@ async def estimate_food_mass(
             "rgb_image_id": rgb_image["image_id"],
             "depth_image_id": depth_image["image_id"],
             "estimated_mass_g": estimated_mass,
-            
         }
 
     except ValueError as exc:
