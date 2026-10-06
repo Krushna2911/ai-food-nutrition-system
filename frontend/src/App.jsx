@@ -17,6 +17,7 @@ function App() {
   const [profileSaved, setProfileSaved] = useState(false)
 
   const [portionSize, setPortionSize] = useState('')
+  const [selectedFood, setSelectedFood] = useState('') 
 
   const [profile, setProfile] = useState({
     age: '',
@@ -424,18 +425,64 @@ console.log(
             <div className="analysis-result">
               <p className="eyebrow">ANALYSIS RESULT</p>
 
-              <h3>
-                {analysisResult.detections[0].class_name}
-              </h3>
+             {analysisResult.detections.map((detection, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => {
+                        setSelectedFood(detection.class_name)
+                        setNutritionResult(null)
+                      }}
+                    >
+                      {detection.class_name} (
+                      {(detection.confidence * 100).toFixed(1)}%
+                      )
+                    </button>
+                  ))}
 
-              <p>
-                Confidence:{' '}
-                {(
-                  analysisResult.detections[0].confidence * 100
-                ).toFixed(1)}
-                %
-              </p>
+                      {selectedFood && (
+                        <p>
+                          Selected food: <strong>{selectedFood}</strong>
+                        </p>
+                      )}
 
+                    {selectedFood && (
+              <button
+                type="button"
+                className="primary-button"
+                onClick={async () => {
+
+                  const nutritionResponse = await fetch(
+                    'http://localhost:8000/nutrition/calculate',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        food_name: selectedFood,
+                        portion_g: Number(portionSize),
+                      }),
+                    }
+                  )
+
+                  const nutritionData = await nutritionResponse.json()
+
+                  if (nutritionResponse.ok) {
+                    setNutritionResult(nutritionData)
+                  } else {
+                    setNutritionResult(null)
+                    console.warn(
+                      'Nutrition data unavailable:',
+                      nutritionData.detail
+                    )
+                  }
+                }}
+              >
+                Calculate Nutrition
+              </button>
+            )}
 
 
            {nutritionResult && (
@@ -560,11 +607,6 @@ console.log(
                   return
                 }
 
-                if (!portionSize || Number(portionSize) <= 0) {
-                    alert('Please enter a valid portion size greater than 0 g.')
-                    return
-                  }
-
                 const formData = new FormData()
                 formData.append('file', file)
 
@@ -607,39 +649,7 @@ console.log(
                     )
                   }
 
-                const nutritionResponse = await fetch(
-                
-                    'http://localhost:8000/nutrition/calculate',
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        food_name: data.detections[0].class_name,
-                        portion_g: Number(portionSize),
-                      }),
-                    }
-)
-
-                const nutritionData =
-                  await nutritionResponse.json()
-
-                if (nutritionResponse.ok) {
-                  setNutritionResult(nutritionData)
-                } else {
-                  setNutritionResult(null)
-                  console.warn(
-                    'Nutrition data unavailable:',
-                    nutritionData.detail
-                  )
-                }
-
                 console.log('analysis result', data)
-                console.log(
-                  'nutrition result',
-                  nutritionData
-                )
               }}
             >
               Analyze Image
@@ -655,7 +665,11 @@ console.log(
               const file = event.target.files?.[0]
 
               if (file) {
-                setSelectedImage(
+                  setSelectedFood('')
+                  setNutritionResult(null)
+                  setAnalysisResult(null)
+                  setSegmentationResult(null)
+                  setSelectedImage(
                   URL.createObjectURL(file)
                 )
               }
@@ -765,3 +779,8 @@ console.log(
 }
 
 export default App
+
+
+
+
+
