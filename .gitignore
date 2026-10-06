@@ -64,3 +64,6 @@ Thumbs.db
 # Trained model artifacts
 # =========================
 *.joblib
+# Local test artifacts
+nutrition_history.txt
+test_images/

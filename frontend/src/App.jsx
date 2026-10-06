@@ -35,7 +35,7 @@ function App() {
 
   // Load analysis history when the page opens
   useEffect(() => {
-    fetch('http://localhost:8001/analysis')
+    fetch('http://localhost:8000/analysis')
       .then((response) => response.json())
       .then((data) => {
         setAnalysisHistory(data)
@@ -54,7 +54,7 @@ function App() {
     return
   }
 
-  fetch(`http://localhost:8001/profile/${savedProfileId}`)
+  fetch(`http://localhost:8000/profile/${savedProfileId}`)
     .then((response) => response.json())
     .then((data) => {
       setProfile({
@@ -106,7 +106,7 @@ if (Number(profile.weight_kg) < 20 || Number(profile.weight_kg) > 300) {
   return
 }
     try {
-      const response = await fetch('http://localhost:8001/profile', {
+      const response = await fetch('http://localhost:8000/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ if (Number(profile.weight_kg) < 20 || Number(profile.weight_kg) > 300) {
       console.log('SAVED PROFILE ID:', data.id)
 
       const requirementResponse = await fetch(
-  'http://localhost:8001/nutrition-requirements',
+  'http://localhost:8000/nutrition-requirements',
   {
     method: 'POST',
     headers: {
@@ -569,7 +569,7 @@ console.log(
                 formData.append('file', file)
 
                 const response = await fetch(
-                  'http://localhost:8001/food/detect',
+                  'http://localhost:8000/food/detect',
                   {
                     method: 'POST',
                     body: formData,
@@ -584,7 +584,7 @@ console.log(
                   segmentationFormData.append('file', file)
 
                   const segmentationResponse = await fetch(
-                    'http://localhost:8001/food/segment',
+                    'http://localhost:8000/food/segment',
                     {
                       method: 'POST',
                       body: segmentationFormData,
@@ -609,7 +609,7 @@ console.log(
 
                 const nutritionResponse = await fetch(
                 
-                    'http://localhost:8001/nutrition/calculate',
+                    'http://localhost:8000/nutrition/calculate',
                     {
                       method: 'POST',
                       headers: {
@@ -682,7 +682,7 @@ console.log(
               key={analysis.id}
               onClick={async () => {
                 const response = await fetch(
-                  `http://localhost:8001/analysis/${analysis.image_id}`
+                  `http://localhost:8000/analysis/${analysis.image_id}`
                 )
 
                 const data = await response.json()
