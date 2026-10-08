@@ -238,7 +238,7 @@ setNutritionRequirements(requirementData)
       {/* Navbar */}
       <header className="navbar">
         <div className="brand">
-          <span className="brand-icon">ðŸ¥—</span>
+          <span className="brand-icon">&#x1F957;</span>
           <span>NutriVision AI</span>
         </div>
 
@@ -727,7 +727,7 @@ setNutritionRequirements(requirementData)
                   )}
               </div>
             ) : (
-              <div className="upload-icon">ðŸ“·</div>
+              <div className="upload-icon">&#x1F4F7;</div>
             )}
 
           <h3>Upload a food image</h3>
@@ -856,7 +856,7 @@ setNutritionRequirements(requirementData)
 
               }}
             >
-              <span>ðŸ½ï¸</span>
+              <span>&#x1F37D;&#xFE0F;</span>
 
               <div>
                 <h3>Analysis #{analysis.id}</h3>
