@@ -17,3 +17,11 @@ class NutritionRepository:
         )
 
         return db.execute(statement).scalar_one_or_none()
+
+    def get_all(
+        self,
+        db: Session,
+    ) -> list[Nutrition]:
+        statement = select(Nutrition)
+
+        return list(db.execute(statement).scalars().all())

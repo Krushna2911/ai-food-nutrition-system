@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers.nutrition import router as nutrition_router
-from app.routers.food import router as food_router
-from app.routers.analysis import router as analysis_router
+from app.routers.recommendation import router as recommendation_router
 
+from app.routers.analysis import router as analysis_router
+from app.routers.diet_plan import router as diet_plan_router
+from app.routers.food import router as food_router
+from app.routers.nutrition import router as nutrition_router
+from app.routers.nutrition_requirement import (
+    router as nutrition_requirement_router,
+)
 from app.routers.user_profile import router as user_profile_router
-from app.routers.nutrition_requirement import router as nutrition_requirement_router
 
 
 app = FastAPI(
@@ -25,6 +29,11 @@ app.add_middleware(
 
 app.include_router(food_router)
 app.include_router(user_profile_router)
+app.include_router(diet_plan_router)
+app.include_router(nutrition_router)
+app.include_router(analysis_router)
+app.include_router(nutrition_requirement_router)
+app.include_router(recommendation_router)
 
 
 @app.get("/")
@@ -39,8 +48,3 @@ def health_check():
     return {
         "status": "healthy"
     }
-
-
-app.include_router(nutrition_router)
-app.include_router(analysis_router)
-app.include_router(nutrition_requirement_router)

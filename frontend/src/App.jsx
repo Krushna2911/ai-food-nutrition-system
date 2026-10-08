@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './App.css'
 
 function App() {
@@ -12,12 +14,13 @@ function App() {
       })
   const [nutritionResult, setNutritionResult] = useState(null)
   const [analysisHistory, setAnalysisHistory] = useState([])
+  const [showAllHistory, setShowAllHistory] = useState(false)
   const [selectedHistory, setSelectedHistory] = useState(null)
 
   const [profileSaved, setProfileSaved] = useState(false)
 
   const [portionSize, setPortionSize] = useState('')
-  const [selectedFood, setSelectedFood] = useState('') 
+  const [selectedFood, setSelectedFood] = useState('')
 
   const [profile, setProfile] = useState({
     age: '',
@@ -31,6 +34,64 @@ function App() {
 
   const [nutritionRequirements, setNutritionRequirements] = useState(null)
 
+  const [dietPlan, setDietPlan] = useState(null)
+  const [recommendation, setRecommendation] = useState(null)
+  const [dietPlanLoading, setDietPlanLoading] = useState(false)
+
+  const generateDietPlan = async () => {
+  const profileId = localStorage.getItem('profileId')
+
+      if (!profileId) {
+        alert('Please save your profile first.')
+        return
+      }
+
+      setDietPlanLoading(true)
+
+      try {
+        const response = await fetch('http://localhost:8000/diet-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            profile_id: Number(profileId),
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          console.error('Diet plan generation failed:', data)
+          alert(data.detail || 'Failed to generate diet plan.')
+          return
+        }
+
+        setDietPlan(data)
+          const recommendationResponse = await fetch('http://127.0.0.1:8000/recommendation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ profile_id: profileId }),
+        })
+
+        if (!recommendationResponse.ok) {
+          throw new Error('Failed to generate recommendation')
+        }
+
+        const recommendationData = await recommendationResponse.json()
+        setRecommendation(recommendationData)
+
+
+      } catch (error) {
+        console.error('Diet plan error:', error)
+        alert('Unable to generate diet plan.')
+      } finally {
+        setDietPlanLoading(false)
+      }
+    }
+
   // Load a saved profile from the backend
 
 
@@ -40,7 +101,7 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         setAnalysisHistory(data)
-        console.log('analysisHistory', data)
+
       })
       .catch((error) => {
         console.error('Analysis history error:', error)
@@ -69,8 +130,8 @@ function App() {
       })
 
       setProfileSaved(true)
-      console.log('profile loaded', data)
-      
+
+
     })
 
     .catch((error) => {
@@ -133,7 +194,7 @@ if (Number(profile.weight_kg) < 20 || Number(profile.weight_kg) > 300) {
 
       localStorage.setItem('profileId', data.id)
       setProfileSaved(true)
-      console.log('SAVED PROFILE ID:', data.id)
+
 
       const requirementResponse = await fetch(
   'http://localhost:8000/nutrition-requirements',
@@ -164,10 +225,7 @@ if (!requirementResponse.ok) {
 
 setNutritionRequirements(requirementData)
 
-console.log(
-  'NUTRITION REQUIREMENTS:',
-  requirementData
-)
+
 
     } catch (error) {
       console.error('Profile save error:', error)
@@ -180,7 +238,7 @@ console.log(
       {/* Navbar */}
       <header className="navbar">
         <div className="brand">
-          <span className="brand-icon">🥗</span>
+          <span className="brand-icon">ðŸ¥—</span>
           <span>NutriVision AI</span>
         </div>
 
@@ -374,6 +432,99 @@ console.log(
 
         </div>
       </section>
+
+<section id="diet" className="features-section">
+  <div className="section-heading">
+    <p className="eyebrow">PERSONALIZED DIET PLAN</p>
+
+    <h2>Your daily meal plan</h2>
+
+    <p>
+      Generate a calorie-targeted meal plan based on your saved profile.
+    </p>
+
+    <button
+      type="button"
+      className="primary-button"
+      onClick={generateDietPlan}
+      disabled={dietPlanLoading}
+    >
+      {dietPlanLoading ? 'Generating Plan...' : 'Generate Diet Plan'}
+    </button>
+  </div>
+
+  {dietPlan && (
+    <div className="diet-plan">
+      <h3>
+        Daily Target: {dietPlan.daily_calorie_target} kcal
+      </h3>
+
+
+       <div className="feature-card nutrition-summary-card">
+         <h3>Daily Nutrition Summary</h3>
+
+
+        <p>
+          Total Calories: {dietPlan.total_calories} kcal
+        </p>
+
+        <p>
+          Protein: {dietPlan.protein_g} g
+        </p>
+
+        <p>
+          Carbohydrates: {dietPlan.carbohydrates_g} g
+        </p>
+
+        <p>
+          Fat: {dietPlan.fat_g} g
+        </p>
+
+        <p>
+          AMDR Compliant: {dietPlan.amdr_compliant ? 'Yes' : 'No'}
+        </p>
+      </div>
+
+  {recommendation && (
+    <div className="feature-card">
+      <h3>AI Nutrition Guidance</h3>
+
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {recommendation.recommendation}
+      </ReactMarkdown>
+    </div>
+  )}
+
+      {dietPlan.meals.map((meal) => (
+        <div className="feature-card" key={meal.meal}>
+          <h3>{meal.meal}</h3>
+
+          <p>
+            Calories: {meal.calories} kcal
+          </p>
+
+          <p>
+            Protein: {meal.protein_g} g
+          </p>
+
+          <p>
+            Carbohydrates: {meal.carbohydrates_g} g
+          </p>
+
+          <p>
+            Fat: {meal.fat_g} g
+          </p>
+
+          {meal.foods.map((food, index) => (
+            <p key={index}>
+              {food.food_name} â€” {food.portion_g} g
+            </p>
+          ))}
+        </div>
+      ))}
+    </div>
+  )}
+</section>
 
       {/* Food Analysis */}
       <section id="analysis" className="analysis-section">
@@ -576,7 +727,7 @@ console.log(
                   )}
               </div>
             ) : (
-              <div className="upload-icon">📷</div>
+              <div className="upload-icon">ðŸ“·</div>
             )}
 
           <h3>Upload a food image</h3>
@@ -597,7 +748,7 @@ console.log(
               type="button"
               className="primary-button analysis-button"
               onClick={async () => {
-                console.log('ANALYZE BUTTON CLICKED')
+
                 const input =
                   document.getElementById('food-image')
 
@@ -619,7 +770,7 @@ console.log(
                 )
 
                 const data = await response.json()
-                console.log('Detection result:', data)
+
                 setAnalysisResult(data)
 
                 const segmentationFormData = new FormData()
@@ -637,10 +788,7 @@ console.log(
 
                   if (segmentationResponse.ok) {
                     setSegmentationResult(segmentationData)
-                    console.log(
-                      'Segmentation result:',
-                      JSON.stringify(segmentationData, null, 2)
-                    )
+
                   } else {
                     setSegmentationResult(null)
                     console.warn(
@@ -649,7 +797,7 @@ console.log(
                     )
                   }
 
-                console.log('analysis result', data)
+
               }}
             >
               Analyze Image
@@ -690,7 +838,9 @@ console.log(
         </div>
 
         <div className="history-list">
-          {analysisHistory.map((analysis) => (
+          {analysisHistory
+            .slice(0, showAllHistory ? analysisHistory.length : 5)
+            .map((analysis) => (
             <div
               className="history-card"
               key={analysis.id}
@@ -703,10 +853,10 @@ console.log(
 
                 setSelectedHistory(data)
 
-                console.log('historyDetail', data)
+
               }}
             >
-              <span>🍽️</span>
+              <span>ðŸ½ï¸</span>
 
               <div>
                 <h3>Analysis #{analysis.id}</h3>
@@ -716,7 +866,15 @@ console.log(
             </div>
           ))}
         </div>
-
+        {analysisHistory.length > 5 && (
+          <button
+            type="button"
+            className="secondary-button history-toggle"
+            onClick={() => setShowAllHistory((current) => !current)}
+          >
+            {showAllHistory ? 'Show Less' : 'View All Analyses'}
+          </button>
+        )}
         {selectedHistory && (
           <div className="analysis-result">
             <p className="eyebrow">
@@ -739,48 +897,8 @@ console.log(
         )}
       </section>
 
-      {/* Features */}
-      <section id="diet" className="features-section">
-
-        <div className="feature-card">
-          <span>🔍</span>
-
-          <h3>Food Detection</h3>
-
-          <p>
-            Identify food items from an uploaded image.
-          </p>
-        </div>
-
-        <div className="feature-card">
-          <span>🍎</span>
-
-          <h3>Nutrition Estimation</h3>
-
-          <p>
-            Connect detected foods with nutrition information.
-          </p>
-        </div>
-
-        <div className="feature-card">
-          <span>📋</span>
-
-          <h3>Personalized Diet</h3>
-
-          <p>
-            Build toward personalized dietary planning.
-          </p>
-        </div>
-
-      </section>
-
     </main>
   )
 }
 
 export default App
-
-
-
-
-

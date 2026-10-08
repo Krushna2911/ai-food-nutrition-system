@@ -1,3 +1,30 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #f8faf7;
+  color: #1f2933;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 .app {
   min-height: 100vh;
   background: #f8faf7;
@@ -5,13 +32,17 @@
 }
 
 .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   height: 72px;
   padding: 0 8%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid #e5e7eb;
+  backdrop-filter: blur(12px);
 }
 
 .brand {
@@ -42,8 +73,11 @@
 }
 
 .hero-section {
-  padding: 110px 8%;
-  background: linear-gradient(135deg, #ecfdf3, #f8faf7);
+  padding: 120px 8% 110px;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(21, 128, 61, 0.12), transparent 30%),
+    linear-gradient(135deg, #ecfdf3, #f8faf7 65%);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .hero-content {
@@ -88,10 +122,18 @@ h1 {
 .primary-button {
   background: #15803d;
   color: #ffffff;
+  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.18);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary-button:hover {
   background: #166534;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.22);
+}
+
+.primary-button:active {
+  transform: translateY(0);
 }
 
 .analysis-section {
@@ -146,11 +188,46 @@ h1 {
   background: #dcfce7;
 }
 
-.features-section {
+.feature-card {
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(31, 41, 51, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(31, 41, 51, 0.07);
+}
+
+#diet {
+  display: block;
+}
+
+#diet .section-heading {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#diet .diet-plan {
+  max-width: 960px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  padding: 30px 8% 90px;
+  gap: 18px;
+}
+
+#diet .feature-card {
+  margin-bottom: 0;
+}
+
+#diet .feature-card p {
+  margin: 10px 0;
+}
+
+#diet .feature-card strong {
+  color: #166534;
 }
 
 .feature-card {
@@ -355,4 +432,188 @@ h1 {
   color: #16845b;
   font-size: 14px;
   font-weight: 600;
+}
+
+
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-form input:hover,
+.profile-form select:hover,
+.profile-form textarea:hover {
+  border-color: #b7c9bc;
+}
+
+.profile-form input:focus,
+.profile-form select:focus,
+.profile-form textarea:focus {
+  border-color: #16845b;
+  box-shadow: 0 0 0 3px rgba(22, 132, 91, 0.1);
+}
+
+#diet .feature-card h3 {
+  color: #1f2933;
+}
+
+#diet .feature-card ul {
+  margin: 10px 0 18px;
+  padding-left: 22px;
+}
+
+#diet .feature-card li {
+  margin-bottom: 8px;
+  color: #66736d;
+  line-height: 1.6;
+}
+
+#diet .feature-card table {
+  width: 100%;
+  margin: 18px 0;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+#diet .feature-card th,
+#diet .feature-card td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+#diet .feature-card th {
+  background: #f4f8f5;
+  color: #33443a;
+  font-weight: 700;
+}
+
+#diet .feature-card td {
+  color: #66736d;
+}
+
+.analysis-result {
+  box-shadow: 0 4px 16px rgba(31, 41, 51, 0.04);
+}
+
+.analysis-result .eyebrow {
+  margin-bottom: 10px;
+}
+
+.analysis-result .secondary-button {
+  width: 100%;
+  margin-bottom: 10px;
+  text-align: left;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.analysis-result .secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .profile-section {
+    padding: 60px 5%;
+  }
+
+  .profile-form {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .profile-form label:last-child,
+  .profile-button,
+  .profile-success {
+    grid-column: auto;
+  }
+
+  #diet .diet-plan {
+    width: 100%;
+  }
+
+  #diet .feature-card {
+    padding: 22px;
+    overflow-x: auto;
+  }
+
+  #diet .feature-card table {
+    min-width: 600px;
+  }
+}
+
+
+.history-toggle {
+  display: block;
+  margin: 24px auto 0;
+}
+
+.nutrition-summary-card {
+  background: linear-gradient(135deg, #ffffff, #f4f8f5);
+}
+
+.nutrition-summary-card h3 {
+  margin-bottom: 18px;
+}
+
+.nutrition-summary-card p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.nutrition-summary-card p strong {
+  color: #166534;
+}
+
+.portion-input {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto 28px;
+  text-align: left;
+}
+
+.portion-input label {
+  display: block;
+  margin-bottom: 8px;
+  color: #33443a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.portion-input input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d5ddd8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #182b3a;
+  font: inherit;
+}
+
+.portion-input input:focus {
+  outline: none;
+  border-color: #16845b;
+  box-shadow: 0 0 0 3px rgba(22, 132, 91, 0.1);
+}
+
+.upload-card .upload-icon {
+  margin-bottom: 12px;
+  font-size: 2.4rem;
+}
+
+.upload-card h3 {
+  margin-top: 8px;
+}
+
+.upload-card > p {
+  margin-bottom: 22px;
 }
