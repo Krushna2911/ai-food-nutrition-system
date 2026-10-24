@@ -14,6 +14,7 @@ from app.services.analysis_service import AnalysisService
 from app.services.segmentation_service import FoodSegmentationService
 from app.services.mass_feature_service import MassFeatureService
 from app.services.mass_estimation_service import MassEstimationService
+from app.services.itd_segmentation_service import ITDSegmentationService
 
 
 detection_service = FoodDetectionService()
@@ -21,6 +22,9 @@ detection_service.load_model()
 
 segmentation_service = FoodSegmentationService()
 segmentation_service.load_model()
+
+itd_segmentation_service = ITDSegmentationService()
+itd_segmentation_service.load_model()
 
 mass_feature_service = MassFeatureService()
 
@@ -73,7 +77,7 @@ async def upload_food_image(file: UploadFile = File(...)):
     return {
         "message": "Food image uploaded successfully",
         **saved_image,
-    } 
+    }
 
 @router.post("/detect", response_model=FoodDetectionResponse)
 async def detect_food(
@@ -150,6 +154,44 @@ async def segment_food(
         "image_id": saved_image["image_id"],
         "segmentations": segmentations,
     }
+
+
+@router.post("/segment-itd")
+async def segment_food_itd(
+    file: UploadFile = File(...),
+):
+    allowed_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/jpg",
+    }
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Please upload a JPEG, PNG, or WEBP image.",
+        )
+
+    try:
+        saved_image = await save_uploaded_image(file)
+        result = itd_segmentation_service.predict(saved_image["path"])
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return {
+        "image_id": saved_image["image_id"],
+        "model": "ITD DeepLabV3 MobileNetV3-Large",
+        "image_width": result["image_width"],
+        "image_height": result["image_height"],
+        "input_size": result["input_size"],
+        "preprocessing_status": "provisional_unverified",
+        "segmentations": result["segmentations"],
+    }
+
 
 @router.post("/mass-estimate")
 async def estimate_food_mass(
