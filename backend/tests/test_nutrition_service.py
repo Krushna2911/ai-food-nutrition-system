@@ -52,3 +52,44 @@ def test_calculate_nutrition_rejects_zero_portion():
             nutrition,
             portion_g=0,
         )
+        
+
+@pytest.mark.parametrize("portion_g", [-1, float("nan"), float("inf")])
+def test_calculate_nutrition_rejects_invalid_portion(portion_g):
+    service = NutritionService(repository=None)
+
+    nutrition = SimpleNamespace(
+        food_name="apple",
+        serving_size_g=100,
+        calories=52,
+        protein_g=0.3,
+        carbohydrates_g=13.8,
+        fat_g=0.2,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Portion size must be greater than 0.",
+    ):
+        service.calculate_nutrition(nutrition, portion_g)
+
+
+@pytest.mark.parametrize("serving_size_g", [0, -100, float("nan"), float("inf")])
+def test_calculate_nutrition_rejects_invalid_serving_size(serving_size_g):
+    service = NutritionService(repository=None)
+
+    nutrition = SimpleNamespace(
+        food_name="apple",
+        serving_size_g=serving_size_g,
+        calories=52,
+        protein_g=0.3,
+        carbohydrates_g=13.8,
+        fat_g=0.2,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Serving size must be greater than 0.",
+    ):
+        service.calculate_nutrition(nutrition, portion_g=150)
+

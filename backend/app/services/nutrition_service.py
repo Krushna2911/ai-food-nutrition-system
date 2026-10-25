@@ -1,3 +1,5 @@
+
+import math
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -25,10 +27,17 @@ class NutritionService:
         nutrition: Nutrition,
         portion_g: float,
     ) -> dict:
-        if portion_g <= 0:
+        if not math.isfinite(portion_g) or portion_g <= 0:
             raise ValueError("Portion size must be greater than 0.")
 
-        multiplier = portion_g / nutrition.serving_size_g
+        serving_size_g = nutrition.serving_size_g
+        if (
+            not math.isfinite(serving_size_g)
+            or serving_size_g <= 0
+        ):
+            raise ValueError("Serving size must be greater than 0.")
+
+        multiplier = portion_g / serving_size_g
 
         return {
             "food_name": nutrition.food_name,
