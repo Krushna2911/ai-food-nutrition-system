@@ -1,3 +1,6 @@
+
+from typing import Optional
+
 from pydantic import BaseModel
 from sqlalchemy import Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -43,6 +46,16 @@ class Nutrition(Base):
     fat_g: Mapped[float] = mapped_column(
         Float,
         nullable=False,
+    )
+
+    fdc_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    nutrition_source: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
     )
 
 
