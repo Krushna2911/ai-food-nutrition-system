@@ -49,6 +49,9 @@ def get_verified_nutrition_rows(df: pd.DataFrame) -> pd.DataFrame:
             "protein_g",
         ]
     )
+    
+def should_skip_existing(existing: Nutrition | None) -> bool:
+    return existing is not None
 
 def seed_nutrition() -> None:
     df = load_nutrition_mapping()
@@ -67,14 +70,8 @@ def seed_nutrition() -> None:
                 .first()
             )
 
-            if existing:
-                existing.serving_size_g = 100
-                existing.calories = float(row.calories_kcal)
-                existing.protein_g = float(row.protein_g)
-                existing.carbohydrates_g = float(row.carbohydrates_g)
-                existing.fat_g = float(row.fat_g)
-
-                print(f"{row.food_name} updated")
+            if should_skip_existing(existing):
+                print(f"{row.food_name} skipped: already exists")
                 continue
 
             db.add(

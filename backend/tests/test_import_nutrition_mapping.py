@@ -4,6 +4,8 @@ import pandas as pd
 from scripts.import_nutrition_mapping import (
     get_verified_nutrition_rows,
     load_nutrition_mapping,
+    should_skip_existing,
+    
 )
 
 def test_only_verified_rows_with_complete_nutrients_are_selected():
@@ -42,3 +44,12 @@ def test_strong_candidates_are_not_selected():
     selected = get_verified_nutrition_rows(df)
 
     assert selected["food_name"].tolist() == ["rice"]
+    
+def test_existing_nutrition_record_should_be_skipped():
+    existing = object()
+
+    assert should_skip_existing(existing) is True
+
+
+def test_missing_nutrition_record_should_not_be_skipped():
+    assert should_skip_existing(None) is False
