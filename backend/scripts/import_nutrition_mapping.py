@@ -34,13 +34,13 @@ def load_nutrition_mapping() -> pd.DataFrame:
         )
 
     return df
+def get_verified_nutrition_rows(df: pd.DataFrame) -> pd.DataFrame:
+    verified_df = df[
+        df["status"].astype(str).str.strip().str.lower()
+        == "verified"
+    ]
 
-
-def seed_nutrition() -> None:
-    df = load_nutrition_mapping()
-
-    # Only import records with actual USDA nutrition values.
-    mapped_df = df.dropna(
+    return verified_df.dropna(
         subset=[
             "fdc_id",
             "calories_kcal",
@@ -50,6 +50,13 @@ def seed_nutrition() -> None:
         ]
     )
 
+def seed_nutrition() -> None:
+    df = load_nutrition_mapping()
+
+    # Only import records with actual USDA nutrition values.
+    # Import only verified mappings with complete USDA nutrition values.
+    mapped_df = get_verified_nutrition_rows(df)
+    
     db = SessionLocal()
 
     try:
